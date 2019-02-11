@@ -1,7 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-**Table of Contents** _generated with [DocToc](https://github.com/thlorenz/doctoc)_
 
 - [Redux Course with Wes Bos](#redux-course-with-wes-bos)
   - [Setup](#setup)
@@ -334,3 +333,53 @@ This invokes `posts` reducer from [posts.js](learn-redux/client/reducers/posts.j
 - If yes, "do something", otherwise, return `state` as-is.
 
 ## Accessing Dispatch and State with Redux
+
+How to access state (eg: all data about posts and comments) into Main or any other component?
+
+Also, how to expose the action creator functions to buttons?
+
+In regular React (no Redux), state would live at top level, eg App, and it gets passed down via props to every lower level component that needs it.
+
+Redux has _connect_ - to inject needed state data at whichever level its needed.
+
+Start at [Main Component](learn-redux/client/components/Main.js) - presentational component, just markup. Will be adding action creators and state data here.
+
+Create new [App Component](learn-redux/client/components/App.js). But rather than createClass, will use `connect` function to build this component.
+
+`connect` takes two functions as arguments:
+
+1. `mapStateToProps` - expose state data via props in component.
+2. `mapDispatchToProps` - expose action creators via props in component.
+
+`connect` gets invoked with `Main` component.
+
+```javascript
+// App.js
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import * as actionCreators from "../actions/actionCreators";
+import Main from "./Main";
+
+function mapStateToProps(state) {
+  return {
+    posts: state.posts,
+    comments: state.comments
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(actionCreators, dispatch);
+}
+const App = connect(
+  mapStateToProps,
+  mapDispatchToProps
+);
+
+export default App;
+```
+
+Edit [reduxstagram component](learn-redux/client/reduxstagram.js) to render `App` instead of `Main`.
+
+Now in React dev tools, notice child of RouterContext is `Connect(Main)`
+
+Clicking on `Main` component, now has Props for posts and comments, and all the action creator functions.
