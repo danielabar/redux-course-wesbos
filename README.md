@@ -1,7 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Redux Course with Wes Bos](#redux-course-with-wes-bos)
   - [Setup](#setup)
   - [App Layout + Component Setup](#app-layout--component-setup)
@@ -14,6 +13,8 @@
   - [Integrating our Store with React Router](#integrating-our-store-with-react-router)
   - [Understanding the Reducer's Job and Dispatching Actions](#understanding-the-reducers-job-and-dispatching-actions)
   - [Accessing Dispatch and State with Redux](#accessing-dispatch-and-state-with-redux)
+  - [Displaying Redux State inside our Components](#displaying-redux-state-inside-our-components)
+  - [Updating State with Reducers](#updating-state-with-reducers)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -383,3 +384,56 @@ Edit [reduxstagram component](learn-redux/client/reduxstagram.js) to render `App
 Now in React dev tools, notice child of RouterContext is `Connect(Main)`
 
 Clicking on `Main` component, now has Props for posts and comments, and all the action creator functions.
+
+## Displaying Redux State inside our Components
+
+Notice in dev tools that also `PhotoGrid` component has access to all posts and comments from state, and all actions. This is because `Main` component has:
+
+```javascript
+{
+  React.cloneElement(this.props.children, this.props);
+}
+```
+
+This passes props from Main down to first child.
+
+To dump raw posts content into `PhotoGrid` component:
+
+```javascript
+// learn-redux/client/components/PhotoGrid.js
+const PhotoGrid = React.createClass({
+  render() {
+    return (
+      <div className="photo-grid">
+        <h1>PhotoGrid Component TODO</h1>
+        <pre>{JSON.stringify(this.props.posts, null, " ")}</pre>
+      </div>
+    );
+  }
+});
+```
+
+But rather than looping and displaying in PhotoGrid, create a new `Photo` component to dipslay just one photo. To pass all props from parent `PhotoGrid` component to child `Photo` component, use object spread operator. Also must provide a `key` property to uniquely identify each Photo. Also need to pass along index because `key` is used by React and not available as regular prop for component. Finally pass in the specific post:
+
+```javascript
+// learn-redux/client/components/PhotoGrid.js
+const PhotoGrid = React.createClass({
+  render() {
+    return (
+      <div className="photo-grid">
+        {this.props.posts.map((post, i) => (
+          <Photo {...this.props} key={i} i={i} post={post} />
+        ))}
+      </div>
+    );
+  }
+});
+```
+
+Now in `Photo` component, display `post` details, using `Link` element from react router to make clickable link to the detail view defined in `reduxstagram.js`:
+
+```javascript
+<Route path="/view/:postId" component={Single} />
+```
+
+## Updating State with Reducers
