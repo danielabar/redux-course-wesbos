@@ -4,8 +4,20 @@
 
 // use ES6 default parameter because first time this function runs, state won't be anything
 function posts(state = [], action) {
-  console.log('The post will change');
-  console.log(state, action);
+  switch (action.type) {
+    case 'INCREMENT_LIKES':
+      console.log('Incrementing likes...');
+      const i = action.index; // actionCreators specifies that increment action will have index data
+      // return the updated state
+      return [
+        ...state.slice(0, i), // before the one we are updating
+        { ...state[i], likes: state[i].likes + 1 }, // the post we are updating
+        ...state.slice(i + 1), // after the one we are updating
+      ];
+      break;
+    default:
+      return state;
+  }
   return state;
 }
 

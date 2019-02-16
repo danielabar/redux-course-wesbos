@@ -1,6 +1,7 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Redux Course with Wes Bos](#redux-course-with-wes-bos)
   - [Setup](#setup)
   - [App Layout + Component Setup](#app-layout--component-setup)
@@ -456,7 +457,7 @@ const Photo = React.createClass({
             transitionName="like"
             transitionEnterTimeout={500}
             transitionLeaveTimeout={500}
-          >
+
             <span key={post.likes} className="likes-heart">
               {post.likes}
             </span>
@@ -482,3 +483,76 @@ const Photo = React.createClass({
 ```
 
 ## Updating State with Reducers
+
+When like button is clicked on `Photo` component, want to run `increment` function (comes from actionCreators.js).
+
+Add `onClick` handler to button, but need to pass `index` as argument to `increment` function so use `bind`,
+
+```javascript
+<button onClick={this.props.increment.bind(null, i)} className="likes">
+  &hearts; {post.likes}
+</button>
+```
+
+But now if click button, this creates an action, which gets dispatched, but ALL reducers are running.
+
+Need to modify [posts reducer](learn-redux/client/reducers/posts.js) to increment the like.
+
+Redux uses functional paradigm - do not mutate the state. Use pure functions.
+
+Pure function is predictable, when called with the same input, should always return the same output.
+
+**Impure Example**
+
+```javascript
+function addLike(picture) {
+  picture.likes++;
+  console.log(picture);
+  return picture;
+}
+
+var post = { name: "A cool picture", likes: 10 };
+
+addLike(post);
+addLike(post);
+addLike(post);
+
+// Output is different for each invocation, even though input object is the same - BAD!
+Object { likes: 11, name: "A cool picture"}
+Object { likes: 12, name: "A cool picture"}
+Object { likes: 13, name: "A cool picture"}
+```
+
+**Pure Function**
+
+To fix impure example above, take copy of input object, modify copy, then return copy (aka new state). Never modify old state, always: copy, modify copy, return copy.
+
+```javascript
+function addLike(picture) {
+  // take a copy using Object spread
+  let pic = {...picture}
+  // increment likes on copy
+  pic.likes++;
+  console.log(pic)
+  return pic;
+}
+
+addLike(post);
+addLike(post);
+addLike(post);
+
+// Output is the same for each invocation, given same input object - GOOD!
+Object { likes: 11, name: "A cool picture"}
+Object { likes: 11, name: "A cool picture"}
+Object { likes: 11, name: "A cool picture"}
+```
+
+Now use this concept of pure function to implement reducer. Switch on `action.type` to respond to `INCREMENT_LIKES` action. `default` should always return state because if any reducer runs that's not interested in that action type, it just returns the given state.
+
+For updating likes on the given post, will return a new array containing a copy of original posts in state, but with the index post likes incremeneted. Use array spread operator to easily make a copy of `state.posts` array.
+
+```javascript
+// learn-redux/client/reducers/posts.js
+```
+
+After state is updated, React takes over with virtual DOM diffing, to update any portion of the DOM that is referencing that piece of state.

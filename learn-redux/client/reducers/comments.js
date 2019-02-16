@@ -4,8 +4,7 @@
 
 // use ES6 default parameter because first time this function runs, state won't be anything
 function comments(state = [], action) {
-  console.log('The comments will change');
-  console.log(state, action);
+  console.log(`The comments will change: action.type = ${action ? action.type : ''}`);
   return state;
 }
 
