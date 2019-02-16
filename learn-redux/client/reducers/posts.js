@@ -14,11 +14,9 @@ function posts(state = [], action) {
         { ...state[i], likes: state[i].likes + 1 }, // the post we are updating
         ...state.slice(i + 1), // after the one we are updating
       ];
-      break;
     default:
       return state;
   }
-  return state;
 }
 
 export default posts;

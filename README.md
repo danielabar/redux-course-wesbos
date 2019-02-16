@@ -16,6 +16,7 @@
   - [Accessing Dispatch and State with Redux](#accessing-dispatch-and-state-with-redux)
   - [Displaying Redux State inside our Components](#displaying-redux-state-inside-our-components)
   - [Updating State with Reducers](#updating-state-with-reducers)
+  - [Displaying the Single Photo Component](#displaying-the-single-photo-component)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -267,6 +268,8 @@ export default posts;
 ```
 
 Root reducer:
+
+**NOTE:** Keys passed to `combineReducers` represent the only valid keys allowed in `defaultState` defined in `store.js`:
 
 ```javascript
 import { combineReducers } from "redux";
@@ -551,8 +554,70 @@ Now use this concept of pure function to implement reducer. Switch on `action.ty
 
 For updating likes on the given post, will return a new array containing a copy of original posts in state, but with the index post likes incremeneted. Use array spread operator to easily make a copy of `state.posts` array.
 
+**Note:** Reducer is only given portion of state that it manages. So `state` value for `posts` reducer is strictly `state.posts`, NOT the entire state object. See [Redux FAQ: Reducers](https://redux.js.org/faq/reducers#reducers-share-state) for more details.
+
 ```javascript
 // learn-redux/client/reducers/posts.js
+function posts(state = [], action) {
+  switch (action.type) {
+    case "INCREMENT_LIKES":
+      console.log("Incrementing likes...");
+      const i = action.index; // actionCreators specifies that increment action will have index data
+      // return the updated state
+      return [
+        ...state.slice(0, i), // before the one we are updating
+        { ...state[i], likes: state[i].likes + 1 }, // the post we are updating
+        ...state.slice(i + 1) // after the one we are updating
+      ];
+    default:
+      return state;
+  }
+}
+
+export default posts;
 ```
 
 After state is updated, React takes over with virtual DOM diffing, to update any portion of the DOM that is referencing that piece of state.
+
+## Displaying the Single Photo Component
+
+Now will build the [Single component](learn-redux/client/components/Single.js).
+
+`Single` displays the same photo with likes and comment buttons that's shown on `PhotoGrid` so re-use it. `Single` also has a comment layout beside photo. Notice that Photo buttons "just work" in Single because of component re-use.
+
+For comments sidebar, create new [Comments Component](learn-redux/client/components/Comments.js)
+
+```javascript
+// learn-redux/client/components/Single.js
+const Single = React.createClass({
+  render() {
+    // index of the post
+    // this.props.params.postId` is the post id from the router: <Route path="/view/:postId" component={Single} />
+    const i = this.props.posts.findIndex(post => post.code === this.props.params.postId);
+    // get us the post
+    const post = this.props.posts[i];
+    return (
+      <div className="single-photo">
+        <Photo i={i} post={post} {...this.props} />;
+        <Comments />
+      </div>
+    );
+  },
+});
+
+export default Single;
+
+// learn-redux/client/components/Comments.js
+const Comments = React.createClass({
+  render() {
+    return (
+      <div className="comment">
+        I'm the comments
+        <div className="whatever">something else </div>
+      </div>
+    );
+  },
+});
+
+export default Comments;
+```
