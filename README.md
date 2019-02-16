@@ -17,6 +17,8 @@
   - [Displaying Redux State inside our Components](#displaying-redux-state-inside-our-components)
   - [Updating State with Reducers](#updating-state-with-reducers)
   - [Displaying the Single Photo Component](#displaying-the-single-photo-component)
+  - [Displaying and Adding Comments](#displaying-and-adding-comments)
+  - [Updating Comment State in our Store](#updating-comment-state-in-our-store)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -621,3 +623,48 @@ const Comments = React.createClass({
 
 export default Comments;
 ```
+
+## Displaying and Adding Comments
+
+First display existing comments. `comments` from state is available in `Single` component as props (via `mapStateToProps` in App). Single component can pass these in to Comments component via props.
+
+To render list of comments in `Comments` component, could create a `Comment` component that just renders one, then loop over each comment and render a `Comment` component...
+
+OR
+
+Use another render function in the same `Comments` component because it's not worth overhead of creating a separte `Comment` component just to dipslay a single message:
+
+```javascript
+// learn-redux/client/components/Comments.js
+const Comments = React.createClass({
+  renderComment(comment, i) {
+    return (
+      <div className="comment" key={i}>
+        <p>
+          <strong>{comment.user}</strong>
+          {comment.text}
+          <button className="remove-comment">&times;</button>
+        </p>
+      </div>
+    );
+  },
+
+  render() {
+    return (
+      <div className="comments">
+        {this.props.postComments.map(this.renderComment)}
+        <form ref="commentForm" className="comment-form">
+          <input type="text" ref="author" placeholder="author" />
+          <input type="text" ref="comment" placeholder="comment" />
+          {/* Need submit button for enter key to submit form but don't want to see it */}
+          <input type="submit" hidden />
+        </form>
+      </div>
+    );
+  }
+});
+
+export default Comments;
+```
+
+## Updating Comment State in our Store
