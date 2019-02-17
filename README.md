@@ -20,6 +20,10 @@
   - [Displaying and Adding Comments](#displaying-and-adding-comments)
   - [Updating Comment State in our Store](#updating-comment-state-in-our-store)
   - [Redux Reducer Composition](#redux-reducer-composition)
+  - [Hot Reloading Redux Reducers with Webpack](#hot-reloading-redux-reducers-with-webpack)
+  - [Learning Redux Dev Tools](#learning-redux-dev-tools)
+  - [Summary](#summary)
+    - [Watch Out](#watch-out)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -885,3 +889,53 @@ function postComments(state = [], action) {
   }
 }
 ```
+
+## Hot Reloading Redux Reducers with Webpack
+
+Currently, saving any change to a component will hot reload in browser (i.e. code updated without requiring full browser refresh, therefore state is preserved).
+
+But change to reducer requires full browser refresh. To fix this, add the following to [store](learn-redux/client/store.js):
+
+```javascript
+// learn-redux/client/store.js
+if (module.hot) {
+  module.hot.accept("./reducers/", () => {
+    const nextRootReducer = require("./reducers/index").default;
+    store.replaceReducer(nextRootReducer);
+  });
+}
+```
+
+## Learning Redux Dev Tools
+
+Install Redux devtools Chrome extension.
+
+Store enhancer:
+
+```javascript
+const store = createStore(
+  rootReducer,
+  defaultState,
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+```
+
+- Now for every action performed in UI, shows ACTION added in redux dev tools.
+- Can toggle on/off to update UI showing what it looked like at any point in time.
+- Provides what state looked like at the time action was dispatched, diff of state.
+
+## Summary
+
+- One giant store that holds all state for application
+- State is updated with actions.
+- Action creators create actions which include: what happened and payload of information needed to execute action.
+- When action is dispatched, handled by reducer.
+- Reducer responsible for updating state.
+- Components are the same as for any React app.
+- mapStateToProps and mapDispatchToProps used to expose store state and actions as props to components.
+
+### Watch Out
+
+- For a real app, would be using an API.
+- Reducers CANNOT BE ASYNCHRONOUS! Reducers need to be pure functions that return immediately.
+- For asynchronous support, use [redux-thunk](https://github.com/reduxjs/redux-thunk) or [redux-saga](https://github.com/redux-saga/redux-saga). Read [comparison](https://decembersoft.com/posts/redux-thunk-vs-redux-saga/).
