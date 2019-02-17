@@ -7,18 +7,33 @@ const Comments = React.createClass({
         <p>
           <strong>{comment.user}</strong>
           {comment.text}
-          <button className="remove-comment">&times;</button>
+          <button
+            className="remove-comment"
+            onClick={this.props.removeComment.bind(
+              null,
+              this.props.params.postId,
+              i
+            )}
+          >
+            &times;
+          </button>
         </p>
       </div>
     );
   },
 
   handleSubmit(evt) {
-    evt.preventDefault(); // stop page from refreshing when form is submitted
+    // stop page from refreshing when form is submitted
+    evt.preventDefault();
+    // get postId from router/url
     const { postId } = this.props.params;
+    // get form data from refs
     const author = this.refs.author.value;
     const comment = this.refs.comment.value;
+    // dispatch action
     this.props.addComment(postId, author, comment);
+    // clear out form after submission
+    this.refs.commentForm.reset();
   },
 
   render() {

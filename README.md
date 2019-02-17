@@ -19,6 +19,7 @@
   - [Displaying the Single Photo Component](#displaying-the-single-photo-component)
   - [Displaying and Adding Comments](#displaying-and-adding-comments)
   - [Updating Comment State in our Store](#updating-comment-state-in-our-store)
+  - [Redux Reducer Composition](#redux-reducer-composition)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -715,4 +716,172 @@ const Comments = React.createClass({
 });
 
 export default Comments;
+```
+
+## Redux Reducer Composition
+
+When state gets complicated, use compositionto narrow down the pieces of state that's being updated.
+
+`comments` instate is an object where key is post code, and value is list of comments (each having text and user). To add one, don't want to update the entire `comments` object, just need to update for the associated post.
+
+Recall up to now, we have two pieces of information in state and corresponding reducer for each:
+
+```javascript
+{
+  posts, comments;
+}
+```
+
+Now let's create a "sub-reducer" to handle updating just one comments entry, i.e. just a _slice_ of state. This is known as _reducer composition_.
+
+This is implemented in comments reducer:
+
+```javascript
+// learn-redux/client/reducers/comments.js
+// Handle updating comments for an individual post
+// `state` is array of comments
+function postComments(state = [], action) {
+  switch (action.type) {
+    case "ADD_COMMENT":
+      // return the new state with the new coment
+      return [
+        ...state,
+        {
+          user: action.author,
+          text: action.comment
+        }
+      ];
+    case "REMOVE_COMMENT":
+      return state;
+    default:
+      return state;
+  }
+}
+
+// This handles all of `comments` state
+function comments(state = [], action) {
+  if (typeof action.postId !== "undefined") {
+    return {
+      // take the current state
+      ...state,
+      // overwrite this post with a new one, use square brackets because key to object is dynamic
+      // pass piece of "sub-state" to postComments -> reducer composition
+      [action.postId]: postComments(state[action.postId], action)
+    };
+  }
+  return state;
+}
+
+export default comments;
+```
+
+Also want to clear comments form after submission:
+
+```javascript
+// learn-redux/client/components/Comments.js
+const Comments = React.createClass({
+  renderComment(comment, i) {
+    return (
+      <div className="comment" key={i}>
+        <p>
+          <strong>{comment.user}</strong>
+          {comment.text}
+          <button className="remove-comment">&times;</button>
+        </p>
+      </div>
+    );
+  },
+
+  handleSubmit(evt) {
+    // stop page from refreshing when form is submitted
+    evt.preventDefault();
+    // get postId from router/url
+    const { postId } = this.props.params;
+    // get form data from refs
+    const author = this.refs.author.value;
+    const comment = this.refs.comment.value;
+    // dispatch action
+    this.props.addComment(postId, author, comment);
+    // clear out form after submission
+    this.refs.commentForm.reset();
+  },
+
+  render() {
+    return (
+      <div className="comments">
+        {this.props.postComments.map(this.renderComment)}
+        <form
+          ref="commentForm"
+          className="comment-form"
+          onSubmit={this.handleSubmit}
+        >
+          <input type="text" ref="author" placeholder="author" />
+          <input type="text" ref="comment" placeholder="comment" />
+          {/* Need submit button for enter key to submit form but don't want to see it */}
+          <input type="submit" hidden />
+        </form>
+      </div>
+    );
+  }
+});
+
+export default Comments;
+```
+
+**Remove Comment**
+
+Add onClick handler to remove button in Comments component. Remove action needs the postId (from which this comment is being removed), and index into comments array for the location of comment being removed.
+
+```javascript
+// learn-redux/client/components/Comments.js
+renderComment(comment, i) {
+  return (
+    <div className="comment" key={i}>
+      <p>
+        <strong>{comment.user}</strong>
+        {comment.text}
+        <button
+          className="remove-comment"
+          onClick={this.props.removeComment.bind(
+            null,
+            this.props.params.postId,
+            i
+          )}
+        >
+          &times;
+        </button>
+      </p>
+    </div>
+  );
+}
+```
+
+Implement the actual comment removal in reducer:
+
+```javascript
+// learn-redux/client/reducers/comments.js
+// Handle updating comments for an individual post
+// `state` is array of comments
+function postComments(state = [], action) {
+  switch (action.type) {
+    case "ADD_COMMENT":
+      // return the new state with the new coment
+      return [
+        ...state,
+        {
+          user: action.author,
+          text: action.comment
+        }
+      ];
+    case "REMOVE_COMMENT":
+      return [
+        // from the start to the one we want to delete
+        ...state.slice(0, action.i),
+        // after the deleted on, to the end
+        ...state.slice(action.i + 1)
+      ];
+    default:
+      return state;
+  }
+}
 ```

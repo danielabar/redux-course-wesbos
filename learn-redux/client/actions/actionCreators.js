@@ -19,7 +19,7 @@ export function addComment(postId, author, comment) {
 // remove comment: i is index into comment array of posts
 export function removeComment(postId, i) {
   return {
-    type: 'RENOVE_COMMENT',
+    type: 'REMOVE_COMMENT',
     i,
     postId,
   };
